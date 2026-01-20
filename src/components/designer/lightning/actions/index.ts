@@ -5,3 +5,4 @@ export { default as OpenChannelButtons } from './OpenChannelButtons';
 export { default as OpenChannelModal } from './OpenChannelModal';
 export { default as PayInvoiceModal } from './PayInvoiceModal';
 export { default as PaymentButtons } from './PaymentButtons';
+export { default as BakeSuperMacaroonButton } from './BakeSuperMacaroonButton';

@@ -264,6 +264,7 @@ export interface LitdLibrary {
     mailboxServerAddr?: string,
   ) => Promise<PLIT.Session>;
   revokeSession: (node: LitdNode, localPublicKey: string) => Promise<void>;
+  bakeSuperMacaroon: (node: LitdNode) => Promise<string>;
 }
 
 export interface StoreInjections {

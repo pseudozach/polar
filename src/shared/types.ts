@@ -118,6 +118,8 @@ export interface LitdNode extends LightningNode {
     litMacaroon: string;
     // tap paths
     tapMacaroon: string;
+    // super macaroon path
+    superMacaroon: string;
   };
   ports: {
     rest: number;

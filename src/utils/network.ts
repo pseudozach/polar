@@ -133,6 +133,8 @@ export const getLitdFilePaths = (name: string, network: Network) => {
     litMacaroon: join(basePath, 'lit', 'regtest', 'lit.macaroon'),
     // /volumes/litd/<name>/tapd/data/regtest/admin.macaroon
     tapMacaroon: join(basePath, 'tapd', 'data', 'regtest', 'admin.macaroon'),
+    // /volumes/litd/<name>/lit/regtest/super.macaroon
+    superMacaroon: join(basePath, 'lit', 'regtest', 'super.macaroon'),
   };
 };
 

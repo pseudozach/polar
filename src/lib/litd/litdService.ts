@@ -2,8 +2,31 @@ import * as LITD from '@lightningpolar/litd-api';
 import { LitdNode } from 'shared/types';
 import { LitdLibrary } from 'types';
 import { waitFor } from 'utils/async';
+import { exists, read, write } from 'utils/files';
+import { getContainerName } from 'utils/network';
+import { getDocker } from 'lib/docker/dockerService';
+import { debug } from 'electron-log';
 import { litdProxyClient as proxy } from './';
 import * as PLIT from './types';
+
+// exec command and options configuration
+const execCommand = {
+  AttachStdout: true,
+  AttachStderr: true,
+  AttachStdin: true,
+  Tty: true,
+  Cmd: ['/bin/bash'],
+};
+
+const execOptions = {
+  Tty: true,
+  stream: true,
+  stdin: true,
+  stdout: true,
+  stderr: true,
+  // fix vim
+  hijack: true,
+};
 
 class LitdService implements LitdLibrary {
   async status(node: LitdNode): Promise<LITD.SubServerStatusResp> {
@@ -64,6 +87,66 @@ class LitdService implements LitdLibrary {
       interval,
       timeout,
     );
+  }
+
+  /**
+   * Bakes a super macaroon for the litd node. If the file already exists, returns its content.
+   * Otherwise, executes the litcli command to create it.
+   */
+  async bakeSuperMacaroon(node: LitdNode): Promise<string> {
+    // Check if the file already exists
+    if (await exists(node.paths.superMacaroon)) {
+      const macaroon = await read(node.paths.superMacaroon);
+      return macaroon.toString('hex');
+    }
+
+    const log = (...args: any[]) => debug(`LitdService ${node.name}:`, ...args);
+
+    // lookup the docker container by name
+    const name = getContainerName(node);
+    log(`creating super macaroon for litd node ${name}`);
+    const docker = await getDocker();
+    log(`getting docker container with name '${name}'`);
+    const containers = await docker.listContainers();
+    const info = containers.find(c => c.Names.includes(`/${name}`));
+    log(`found container: ${info?.Id}`);
+    const container = info && docker.getContainer(info.Id);
+    if (!container) throw new Error(`Docker container not found: ${name}`);
+    
+    // create an exec instance
+    const exec = await container.exec({ ...execCommand, User: 'litd' });
+    // run exec to connect to the container
+    const stream = await exec.start(execOptions);
+
+    let result = '';
+    // capture the data from docker
+    stream.on('data', (data: Buffer) => {
+      result += data.toString();
+    });
+
+    // send the bakesupermacaroon command and exit immediately to end the stream
+    log(`sending bakesupermacaroon command`);
+    stream.write('litcli bakesupermacaroon --save_to ~/.lit/regtest/super.macaroon\n');
+    stream.write('exit\n');
+
+    // wait for the command to finish
+    await new Promise(resolve => stream.on('close', resolve));
+    stream.destroy();
+
+    log(`bakesupermacaroon result:\n${result}`);
+
+    // Wait a moment for the file to be written
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Read the macaroon from the file
+    if (!(await exists(node.paths.superMacaroon))) {
+      throw new Error('Failed to create super macaroon. File was not created.');
+    }
+
+    const macaroon = await read(node.paths.superMacaroon);
+    const hexMacaroon = macaroon.toString('hex');
+    log(`super macaroon created successfully`);
+    return hexMacaroon;
   }
 
   private mapSession(session: LITD.Session): PLIT.Session {
