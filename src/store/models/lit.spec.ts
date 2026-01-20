@@ -122,6 +122,13 @@ describe('LIT Model', () => {
       ).resolves.not.toThrow();
       expect(litdServiceMock.revokeSession).toHaveBeenCalledWith(node, 'abcdef');
     });
+
+    it('should bake a super macaroon', async () => {
+      litdServiceMock.bakeSuperMacaroon.mockResolvedValue('deadbeef123456789');
+      const result = await store.getActions().lit.bakeSuperMacaroon({ node });
+      expect(result).toBe('deadbeef123456789');
+      expect(litdServiceMock.bakeSuperMacaroon).toHaveBeenCalledWith(node);
+    });
   });
 
   describe('asset payments', () => {
