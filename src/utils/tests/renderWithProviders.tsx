@@ -93,6 +93,7 @@ export const injections: StoreInjections = {
     addSession: jest.fn(),
     revokeSession: jest.fn(),
     waitUntilOnline: jest.fn(),
+    bakeSuperMacaroon: jest.fn(),
   },
 };
 export const litdServiceMock = injections.litdService as jest.Mocked<

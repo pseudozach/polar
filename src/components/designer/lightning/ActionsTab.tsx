@@ -12,7 +12,12 @@ import {
 import { ViewLogsButton } from 'components/dockerLogs';
 import { OpenTerminalButton } from 'components/terminal';
 import { MintAssetButton, NewAddressButton, SendAssetButton } from '../tap/actions';
-import { Deposit, OpenChannelButtons, PaymentButtons } from './actions';
+import {
+  BakeSuperMacaroonButton,
+  Deposit,
+  OpenChannelButtons,
+  PaymentButtons,
+} from './actions';
 
 const Styled = {
   Spacer: styled.div`
@@ -34,6 +39,7 @@ const ActionsTab: React.FC<Props> = ({ node }) => {
           <PaymentButtons node={node} />
           {node.implementation === 'litd' && (
             <>
+              <BakeSuperMacaroonButton node={node} />
               <SendAssetButton node={mapToTapd(node)} />
               <NewAddressButton node={mapToTapd(node)} />
               <MintAssetButton node={mapToTapd(node)} />

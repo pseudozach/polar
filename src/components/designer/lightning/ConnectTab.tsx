@@ -64,6 +64,7 @@ export interface ConnectionInfo {
     // litd macaroons
     lit?: string;
     tap?: string;
+    superMacaroon?: string;
   };
   p2pUriExternal: string;
   authTypes: string[];
@@ -147,6 +148,7 @@ const ConnectTab: React.FC<Props> = ({ node }) => {
             cert: litd.paths.litTlsCert,
             lit: litd.paths.litMacaroon,
             tap: litd.paths.tapMacaroon,
+            superMacaroon: litd.paths.superMacaroon,
           },
           p2pUriExternal: `${pubkey}@127.0.0.1:${litd.ports.p2p}`,
           authTypes: ['paths', 'hex', 'base64', 'lnc'],

@@ -39,6 +39,10 @@ export interface PayInvoicePayload {
   invoice: string;
 }
 
+export interface BakeSuperMacaroonPayload {
+  node: LitdNode;
+}
+
 export interface LitModel {
   nodes: LitNodeMapping;
   removeNode: Action<LitModel, string>;
@@ -53,6 +57,13 @@ export interface LitModel {
     Promise<PLIT.Session>
   >;
   revokeSession: Thunk<LitModel, RevokeSessionPayload, StoreInjections, RootModel>;
+  bakeSuperMacaroon: Thunk<
+    LitModel,
+    BakeSuperMacaroonPayload,
+    StoreInjections,
+    RootModel,
+    Promise<string>
+  >;
   createAssetInvoice: Thunk<
     LitModel,
     CreateInvoicePayload,
@@ -111,6 +122,10 @@ const litModel: LitModel = {
   revokeSession: thunk(async (actions, { node, localPublicKey }, { injections }) => {
     await injections.litdService.revokeSession(node, localPublicKey);
     await actions.getSessions(node);
+  }),
+  bakeSuperMacaroon: thunk(async (_, { node }, { injections }) => {
+    const macaroon = await injections.litdService.bakeSuperMacaroon(node);
+    return macaroon;
   }),
   createAssetInvoice: thunk(
     async (_, { node, assetId, amount }, { injections, getStoreState }) => {
